@@ -19,9 +19,15 @@ def call(Map params) {
  }
  azCmd += ' --overwrite-existing'
 
+ echo azCmd
  sh azCmd
 
  if (!skipKubelogin) {
-  sh 'kubelogin convert-kubeconfig -l azurecli'
+  def klCommand = 'kubelogin convert-kubeconfig -l azurecli'
+  if (kubeconfig) {
+   klCommand = "KUBECONFIG=${kubeconfig} ${klCommand}"
+  }
+  echo klCommand
+  sh klCommand
  }
 }
