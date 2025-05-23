@@ -5,6 +5,10 @@ def call(Map params) {
  def kubeconfig = params.get('kubeconfig', null)
  def skipKubelogin = params.get('skipKubelogin', false)
 
+ if (!rg || !name) {
+  error 'Missing required parameters: resourceGroup or clusterName'
+ }
+
  def azCmd = 'az aks get-credentials'
  if (subscriptionId) {
   azCmd += " --subscription ${subscriptionId}"
