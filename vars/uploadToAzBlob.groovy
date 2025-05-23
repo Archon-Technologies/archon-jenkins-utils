@@ -5,8 +5,8 @@ def call(Map args) {
  def account = args.account ?: env.MONITORING_ARTIFACT_ACCOUNT
  def overwrite = args.overwrite ?: true
 
- if (!digest || !container || !account) {
-  error 'Missing required parameters: digest, container, or account'
+ if (!fileToUpload) {
+  error 'File to upload is not specified'
  }
 
  sh """

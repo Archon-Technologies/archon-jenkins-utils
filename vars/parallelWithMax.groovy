@@ -1,4 +1,3 @@
-// this lives at the top level of vars/parallelWithMax.groovy
 def call(args = [:]) {
  def jobs = args.jobs ?: [:]
  int maxConcurrent = args.maxConcurrent ?: 5
@@ -8,7 +7,7 @@ def call(args = [:]) {
 
  // thread-safe queue of all work items
  def jobQueue = new java.util.concurrent.LinkedBlockingQueue(jobs.entrySet())
- // thread-safe map of results (if you actually need them)
+ // thread-safe map of results
  def results  = new java.util.concurrent.ConcurrentHashMap()
 
  // build our N workers
