@@ -1,4 +1,4 @@
-def loginWithWorkloadId() {
+def loginWithWorkloadId(message = null) {
  echo 'Logging in with workload identity'
  sh '''
    set +x
