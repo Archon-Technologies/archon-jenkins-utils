@@ -1,45 +1,38 @@
+// this lives at the top level of vars/parallelWithMax.groovy
 def call(Map args = [:]) {
  Map<String, Closure> jobs = args.jobs ?: [:]
- int maxNumber = args.maxConcurrent ?: 5
- // Build a thread‐safe queue of the remaining work
- def jobQueue = new java.util.concurrent.LinkedBlockingQueue<Map.Entry<String,Closure>>(jobs.entrySet())
+ int maxConcurrent = args.maxConcurrent ?: 5
 
- // A helper that pulls one job off the queue and wraps it
- def scheduleOne = {
-  def entry = jobQueue.poll()
-  if (entry == null) {
-   return null
-  }
-  [(entry.key): {
-      try {
-        entry.value.call()
-      } finally {
-        // When this branch completes, schedule exactly one more
-        def next = scheduleOne.call()
-        if (next) {
-          parallel next
-        }
-      }
-    }]
- }
+ // never spin up more threads than jobs
+ int maxWorkers = Math.min(maxConcurrent, jobs.size())
 
- if (maxNumber < jobs.size()) {
-  // Don't bother spinning up more threads than we have jobs
-  maxNumber = jobs.size()
- }
+ // thread-safe queue of all work items
+ def jobQueue = new java.util.concurrent.LinkedBlockingQueue<>(jobs.entrySet())
+ // thread-safe map of results (if you actually need them)
+ def results  = new java.util.concurrent.ConcurrentHashMap<String,Object>()
 
- // Kick off up to maxNumber initial branches
- def initial = [:]
- for (int i = 0; i < maxNumber; i++) {
-  def one = scheduleOne.call()
-  if (one) {
-   initial.putAll(one)
-  } else {
-   break
+ // build our N workers
+ def workers = [:]
+ for (int i = 1; i <= maxWorkers; i++) {
+  workers["worker-${i}"] = {
+   while (true) {
+    // non-blocking pull
+    def entry = jobQueue.poll()
+    if (entry == null) {
+     break
+    }
+    try {
+     def (name, body) = [entry.key, entry.value]
+     results.put(name, body.call())
+    } catch (e) {
+     throw e
+    }
+   }
   }
  }
 
- if (initial) {
-  parallel initial
- }
+ // fire them off in parallel
+ parallel workers
+
+ return results
 }
