@@ -1,5 +1,5 @@
 // this lives at the top level of vars/parallelWithMax.groovy
-def call(Map args = [:]) {
+def call(args = [:]) {
  def jobs = args.jobs ?: [:]
  int maxConcurrent = args.maxConcurrent ?: 5
 
