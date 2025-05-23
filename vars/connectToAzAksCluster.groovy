@@ -1,7 +1,7 @@
 def call(Map params) {
  def subscriptionId = params.get('subscriptionId', null)
- def rg = params.rg
- def name = params.name
+ def rg = params.resourceGroup
+ def name = params.clusterName
  def kubeconfig = params.get('kubeconfig', null)
  def skipKubelogin = params.get('skipKubelogin', false)
 
