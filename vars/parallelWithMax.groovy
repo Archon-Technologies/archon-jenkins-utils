@@ -1,8 +1,8 @@
 def call(Map args = [:]) {
  Map<String, Closure> jobs = args.jobs ?: [:]
- int maxNumber = args.maxNumber ?: 5
+ int maxConcurrent = args.maxConcurrent ?: 5
 
- def semaphore = new java.util.concurrent.Semaphore(maxNumber)
+ def semaphore = new java.util.concurrent.Semaphore(maxConcurrent)
 
  def throttled = jobs.collectEntries { name, body ->
   [(name): {
