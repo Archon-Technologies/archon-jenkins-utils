@@ -4,7 +4,7 @@ def call(Map m) {
  def output = m.output
 
  if (!(img || input) || !output) {
-  error 'Missing required parameters: (either img or file) or output'
+  error 'Missing required parameters: (either img or file) and output'
  }
 
  def trivyParams = [

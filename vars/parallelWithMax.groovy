@@ -22,7 +22,10 @@ def call(args = [:]) {
     }
     try {
      def (name, body) = [entry.key, entry.value]
-     results.put(name, body.call())
+     def result = body.call()
+     if (result) {
+      results[name] = result
+     }
     } catch (e) {
      throw e
     }
