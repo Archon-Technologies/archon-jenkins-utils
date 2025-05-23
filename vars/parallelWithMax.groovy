@@ -24,7 +24,7 @@ def call(args = [:]) {
      def (name, body) = [entry.key, entry.value]
      def result = body.call()
      if (result) {
-      results[name] = result
+      results.put(name, result)
      }
     } catch (e) {
      throw e
