@@ -3,7 +3,7 @@ def call() {
  sh '''
    set +x
    az login --federated-token "$(cat $AZURE_FEDERATED_TOKEN_FILE)" \
-     --service-principal -u $AZURE_CLIENT_ID -t $AZURE_TENANT_ID
+     --service-principal -u $AZURE_CLIENT_ID -t $AZURE_TENANT_ID > /dev/null
    set -x
  '''
 }
