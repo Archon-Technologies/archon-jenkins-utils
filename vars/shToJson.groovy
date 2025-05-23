@@ -1,4 +1,4 @@
-def call(GString script) {
+def call(String script) {
  // Check if the script is empty
  if (script == null || script.trim().isEmpty()) {
   error 'Script is empty'
