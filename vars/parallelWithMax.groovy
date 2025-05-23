@@ -15,7 +15,7 @@ def call(Map args = [:]) {
         entry.value.call()
       } finally {
         // When this branch completes, schedule exactly one more
-        def next = scheduleOne()
+        def next = scheduleOne.call()
         if (next) {
           parallel next
         }
@@ -31,10 +31,10 @@ def call(Map args = [:]) {
  // Kick off up to maxNumber initial branches
  def initial = [:]
  for (int i = 0; i < maxNumber; i++) {
-  def one = scheduleOne()
+  def one = scheduleOne.call()
   if (one) {
    initial.putAll(one)
-        } else {
+  } else {
    break
   }
  }
