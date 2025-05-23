@@ -7,7 +7,7 @@ def call(Map args = [:]) {
  int maxWorkers = Math.min(maxConcurrent, jobs.size())
 
  // thread-safe queue of all work items
- def jobQueue = new java.util.concurrent.LinkedBlockingQueue<>(jobs.entrySet())
+ def jobQueue = new java.util.concurrent.LinkedBlockingQueue<Map.Entry<String,Closure>>(jobs.entrySet())
  // thread-safe map of results (if you actually need them)
  def results  = new java.util.concurrent.ConcurrentHashMap<String,Object>()
 
