@@ -30,11 +30,13 @@ def call(Map args = [:]) {
 
  // Kick off up to maxNumber initial branches
  def initial = [:]
- (1..maxNumber).each {
-    def one = scheduleOne()
-    if (one) {
+ for (int i = 0; i < maxNumber; i++) {
+  def one = scheduleOne()
+  if (one) {
    initial.putAll(one)
-    }
+        } else {
+   break
+  }
  }
 
  if (initial) {
