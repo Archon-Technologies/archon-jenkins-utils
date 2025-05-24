@@ -27,7 +27,7 @@ def call(args = [:]) {
       results.put(name, result)
      }
     } catch (e) {
-     throw e
+     echo "Error in ${name}: ${e}"
     }
    }
   }
