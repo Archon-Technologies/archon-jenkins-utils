@@ -12,6 +12,7 @@ def call(args = [:]) {
 
  // build our N workers
  def workers = [:]
+ def errorToThrow = null
  for (int i = 1; i <= maxWorkers; i++) {
   workers["worker-${i}"] = {
    while (true) {
@@ -28,6 +29,8 @@ def call(args = [:]) {
      }
     } catch (e) {
      echo "Error in ${name}: ${e}"
+     // store the error to throw later
+     errorToThrow = e
     }
    }
   }
@@ -35,6 +38,11 @@ def call(args = [:]) {
 
  // fire them off in parallel
  parallel workers
+
+ if (errorToThrow) {
+  // throw the error after all workers have completed
+  throw errorToThrow
+ }
 
  return results
 }
