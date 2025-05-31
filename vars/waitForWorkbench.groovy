@@ -86,7 +86,8 @@ def lookupGroupByName(String groupName) {
    validResponseCodes: '200'
   )
 
-  def groups = readJSON(text: groupsResponse.content)
+  def groupsResponseData = readJSON(text: groupsResponse.content)
+  def groups = groupsResponseData.data
 
   if (groups.size() == 0) {
    echo "No group found with name: ${groupName}"
@@ -96,6 +97,8 @@ def lookupGroupByName(String groupName) {
   }
 
   def group = groups[0]
+  echo group
+
   echo "Found group: ${group.name} (ID: ${group.id})"
   return group
  } catch (Exception e) {
@@ -138,6 +141,7 @@ def call(Map config = [:]) {
  def webhookUrl = null
  def hook = registerWebhook()
  webhookUrl = hook.getURL()
+ def webhookSecret = hook.getSecret()
  echo "Webhook registered at: ${webhookUrl}"
 
  try {
@@ -152,7 +156,7 @@ def call(Map config = [:]) {
     buildNumber buildNumber
     description description
     webhookUrl webhookUrl
-    approvalToken approvalToken
+    approvalToken webhookSecret
     requestedApprovers requestedApprovers
    }
   }
@@ -168,7 +172,8 @@ def call(Map config = [:]) {
    validResponseCodes: '200,201'
   )
 
-  def threadData = readJSON(text: createThreadResponse.content)
+  def threadResponseData = readJSON(text: createThreadResponse.content)
+  def threadData = threadResponseData.data
   def threadId = threadData.id
   echo "Approval thread created with ID: ${threadId}"
 
@@ -178,11 +183,6 @@ def call(Map config = [:]) {
 
   // Parse webhook payload
   def webhookPayload = readJSON(text: webhookData)
-
-  // Verify the approval token matches
-  if (webhookPayload.approvalToken != approvalToken) {
-   error 'Invalid approval token received'
-  }
 
   // Verify job details match
   if (webhookPayload.jobName != jobName || webhookPayload.buildNumber != buildNumber) {
