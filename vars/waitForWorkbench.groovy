@@ -22,6 +22,11 @@ waitForWorkbench([
     ],
     description: 'Deploy build to production environment'
 ])
+
+Required plugins:
+- HTTP Request
+- Webhook Step
+- Pipeline Utility Steps
 */
 
 // Helper function to get OAuth access token
@@ -74,7 +79,7 @@ def lookupGroupByName(String groupName) {
  try {
   // Query groups by name
   def groupsResponse = httpRequest(
-   url: "${workbenchUrl}/api/groups?name=${URLEncoder.encode(groupName, 'UTF-8')}",
+   url: "${workbenchUrl}/api/v1/groups?name=${URLEncoder.encode(groupName, 'UTF-8')}",
    httpMode: 'GET',
    acceptType: 'APPLICATION_JSON',
    customHeaders: [[name: 'Authorization', value: "Bearer ${accessToken}"]],
@@ -95,41 +100,6 @@ def lookupGroupByName(String groupName) {
   return group
  } catch (Exception e) {
   echo "Error looking up group: ${e.message}"
-  throw e
- }
-}
-
-// Function to look up all groups matching a pattern
-def lookupGroupsByPattern(String pattern) {
- def workbenchUrl = env.WORKBENCH_URL
- if (!workbenchUrl) {
-  error 'WORKBENCH_URL environment variable is required'
- }
-
- echo "Looking up groups matching pattern: ${pattern}"
-
- // Get OAuth token
- def accessToken = getAccessToken()
-
- try {
-  // Query all groups and filter by pattern
-  def groupsResponse = httpRequest(
-   url: "${workbenchUrl}/api/groups",
-   httpMode: 'GET',
-   acceptType: 'APPLICATION_JSON',
-   customHeaders: [[name: 'Authorization', value: "Bearer ${accessToken}"]],
-   validResponseCodes: '200'
-  )
-
-  def allGroups = readJSON(text: groupsResponse.content)
-  def matchingGroups = allGroups.findAll { group ->
-   group.name.matches(pattern)
-  }
-
-  echo "Found ${matchingGroups.size()} groups matching pattern"
-  return matchingGroups
-    } catch (Exception e) {
-  echo "Error looking up groups: ${e.message}"
   throw e
  }
 }
@@ -189,7 +159,7 @@ def call(Map config = [:]) {
 
   echo 'Creating approval thread in Workbench...'
   def createThreadResponse = httpRequest(
-   url: "${workbenchUrl}/api/threads",
+   url: "${workbenchUrl}/api/v1/threads/templated",
    httpMode: 'POST',
    acceptType: 'APPLICATION_JSON',
    contentType: 'APPLICATION_JSON',
