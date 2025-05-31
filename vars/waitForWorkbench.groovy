@@ -1,5 +1,3 @@
-import groovy.json.JsonBuilder
-
 /**
 Required Environment Variables:
 OAUTH_WELL_KNOWN: The OAuth well-known configuration endpoint
@@ -146,20 +144,20 @@ def call(Map config = [:]) {
 
  try {
   // Step 3: Create approval thread in Workbench
-  def threadPayload = new JsonBuilder()
-  threadPayload {
-   title "Jenkins Approval: ${jobName} #${buildNumber}"
-   template 'jenkins-approval'
-   categoryId categoryId
-   data {
-    jobName jobName
-    buildNumber buildNumber
-    description description
-    webhookUrl webhookUrl
-    approvalToken webhookSecret
-    requestedApprovers requestedApprovers
-   }
-  }
+
+  def threadPayload = writeJSON(json: [
+   title: "Jenkins Approval: ${jobName} #${buildNumber}",
+   template: 'jenkins-approval',
+   categoryId: categoryId,
+   data: [
+    jobName: jobName,
+    buildNumber: buildNumber,
+    description: description,
+    webhookUrl: webhookUrl,
+    approvalToken: webhookSecret,
+    requestedApprovers: requestedApprovers
+   ]
+  ], returnText: true)
 
   echo 'Creating approval thread in Workbench...'
   def createThreadResponse = httpRequest(
@@ -168,7 +166,7 @@ def call(Map config = [:]) {
    acceptType: 'APPLICATION_JSON',
    contentType: 'APPLICATION_JSON',
    customHeaders: [[name: 'Authorization', value: "Bearer ${accessToken}"]],
-   requestBody: threadPayload.toString(),
+   requestBody: threadPayload,
    validResponseCodes: '200,201'
   )
 
