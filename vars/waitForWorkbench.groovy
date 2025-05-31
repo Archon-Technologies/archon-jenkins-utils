@@ -24,13 +24,6 @@ waitForWorkbench([
     ],
     description: 'Deploy build to production environment'
 ])
-
-Or simply (with default category ID):
-// Requires WORKBENCH_DEFAULT_CATEGORY_ID env var
-waitForWorkbench([
-    [type: 'user', email: 'approver@example.com'],
-    [type: 'group', name: 'DevOps']
-], 'Quick approval needed')
 */
 
 // Helper function to get OAuth access token
@@ -149,8 +142,10 @@ def call(Map config = [:]) {
  def buildNumber = config.buildNumber ?: env.BUILD_NUMBER
  def description = config.description ?: "Jenkins build ${jobName} #${buildNumber} requires approval"
  def requestedApprovers = config.requestedApprovers // Required: array of arrays of approvers
- def categoryId = config.categoryId // Required: category ID in Workbench
+ def categoryName = config.categoryName // Required: category ID in Workbench
  def workbenchUrl = config.workbenchUrl ?: env.WORKBENCH_URL // Base URL of Workbench API
+
+ def categoryId = lookupGroupByName(categoryName).id
 
  // Validate required parameters
  if (!requestedApprovers) {
@@ -239,22 +234,4 @@ def call(Map config = [:]) {
   echo "Error during approval process: ${e.message}"
   throw e
  }
-}
-
-// Overloaded method for simpler single-stage approvals
-def call(List<Map> approvers, String description = null) {
- def config = [:]
- config.requestedApprovers = [approvers] // Single stage with provided approvers
- if (description) {
-  config.description = description
- }
-
- // Look for default category ID in environment
- if (env.WORKBENCH_DEFAULT_CATEGORY_ID) {
-  config.categoryId = env.WORKBENCH_DEFAULT_CATEGORY_ID
-    } else {
-  error 'WORKBENCH_DEFAULT_CATEGORY_ID environment variable is required for simplified call'
- }
-
- return call(config)
 }
