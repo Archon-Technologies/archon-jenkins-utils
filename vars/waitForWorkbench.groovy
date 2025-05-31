@@ -126,9 +126,6 @@ def call(Map config = [:]) {
   error 'workbenchUrl is required (can be set via WORKBENCH_URL env var)'
  }
 
- // Generate a unique approval token for this build
- def approvalToken = UUID.randomUUID().toString()
-
  echo "Setting up Workbench approval for ${jobName} #${buildNumber}"
 
  // Step 1: Get OAuth token
@@ -138,7 +135,7 @@ def call(Map config = [:]) {
  def webhookUrl = null
  def hook = registerWebhook()
  webhookUrl = hook.getURL()
- def webhookSecret = hook.getSecret()
+ def webhookSecret = hook.getToken()
  echo "Webhook registered at: ${webhookUrl}"
 
  try {
