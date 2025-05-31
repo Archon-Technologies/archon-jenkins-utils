@@ -42,7 +42,7 @@ def getAccessToken() {
    httpMode: 'GET',
    acceptType: 'APPLICATION_JSON'
   )
-  def wellKnownConfig = new JsonSlurper().parseText(wellKnownResponse.content)
+  def wellKnownConfig = readJSON(text: wellKnownResponse.content)
   def tokenEndpoint = wellKnownConfig.token_endpoint
 
   echo 'Requesting access token...'
@@ -54,7 +54,7 @@ def getAccessToken() {
    requestBody: "grant_type=client_credentials&client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}",
    validResponseCodes: '200'
   )
-  def tokenData = new JsonSlurper().parseText(tokenResponse.content)
+  def tokenData = readJSON(text: tokenResponse.content)
   return tokenData.access_token
  }
 }
