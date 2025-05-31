@@ -1,18 +1,16 @@
 import groovy.json.JsonBuilder
-import groovy.json.JsonSlurper
 
 /**
 Required Environment Variables:
 OAUTH_WELL_KNOWN: The OAuth well-known configuration endpoint
 WORKBENCH_URL: Base URL of the Workbench API
-WORKBENCH_DEFAULT_CATEGORY_ID: (Optional) Default category for simplified usage
 
 Required Jenkins Credentials:
 OAUTH_CLIENT: Username/password credential containing client ID and secret
 
 Example Usage:
 waitForWorkbench([
-    categoryId: 'deployment-approvals',
+    categoryName: 'deployment-approvals',
     requestedApprovers: [
         [ // Stage 1
             [type: 'user', email: 'lead@example.com'],
@@ -83,19 +81,19 @@ def lookupGroupByName(String groupName) {
    validResponseCodes: '200'
   )
 
-  def groups = new JsonSlurper().parseText(groupsResponse.content)
+  def groups = readJSON(text: groupsResponse.content)
 
   if (groups.size() == 0) {
    echo "No group found with name: ${groupName}"
    return null
-        } else if (groups.size() > 1) {
+  } else if (groups.size() > 1) {
    echo "Warning: Multiple groups found with name: ${groupName}, returning first match"
   }
 
   def group = groups[0]
   echo "Found group: ${group.name} (ID: ${group.id})"
   return group
-    } catch (Exception e) {
+ } catch (Exception e) {
   echo "Error looking up group: ${e.message}"
   throw e
  }
@@ -123,7 +121,7 @@ def lookupGroupsByPattern(String pattern) {
    validResponseCodes: '200'
   )
 
-  def allGroups = new JsonSlurper().parseText(groupsResponse.content)
+  def allGroups = readJSON(text: groupsResponse.content)
   def matchingGroups = allGroups.findAll { group ->
    group.name.matches(pattern)
   }
@@ -200,7 +198,7 @@ def call(Map config = [:]) {
    validResponseCodes: '200,201'
   )
 
-  def threadData = new JsonSlurper().parseText(createThreadResponse.content)
+  def threadData = readJSON(text: createThreadResponse.content)
   def threadId = threadData.id
   echo "Approval thread created with ID: ${threadId}"
 
