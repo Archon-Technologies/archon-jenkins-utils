@@ -95,7 +95,6 @@ def lookupGroupByName(String groupName) {
   }
 
   def group = groups[0]
-  echo group
 
   echo "Found group: ${group.name} (ID: ${group.id})"
   return group
