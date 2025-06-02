@@ -128,18 +128,16 @@ def call(Map config = [:]) {
    jobName: jobName,
    buildNumber: buildNumber
   ]
- } catch (org.jenkinsci.plugins.workflow.steps.FlowInterruptedException e) {
+ } catch (org.jenkinsci.plugins.workflow.steps.FlowInterruptedException |
+          hudson.AbortException |
+          InterruptedException e) {
   // This is thrown when the build is manually aborted
   echo "Build was interrupted/cancelled: ${e.message}"
+
+  // Cancel the thread
+  cancelWorkbench(threadId: threadId)
+
   // Re-throw to maintain the interrupted status
-  throw e
- } catch (hudson.AbortException e) {
-  // This can be thrown by various Jenkins operations
-  echo "Build was aborted: ${e.message}"
-  throw e
- } catch (InterruptedException e) {
-  // Another type of interruption
-  echo "Build was interrupted: ${e.message}"
   throw e
  } catch (Exception e) {
   echo "Error during approval process: ${e.message}"
