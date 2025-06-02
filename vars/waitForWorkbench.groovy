@@ -66,6 +66,9 @@ def call(Map config = [:]) {
  def webhookSecret = hook.getToken()
  echo "Webhook registered at: ${webhookUrl}"
 
+ // Initialize threadId outside try block for cleanup access
+ def threadId = null
+
  try {
   // Step 3: Create approval thread in Workbench
 
@@ -96,7 +99,7 @@ def call(Map config = [:]) {
 
   def threadResponseData = readJSON(text: createThreadResponse.content)
   def threadData = threadResponseData.data
-  def threadId = threadData.id
+  threadId = threadData.id
   echo "Approval thread created with ID: ${threadId}"
 
   // Step 4: Wait for webhook callback
@@ -125,8 +128,24 @@ def call(Map config = [:]) {
    jobName: jobName,
    buildNumber: buildNumber
   ]
+ } catch (org.jenkinsci.plugins.workflow.steps.FlowInterruptedException e) {
+  // This is thrown when the build is manually aborted
+  echo "Build was interrupted/cancelled: ${e.message}"
+  // Re-throw to maintain the interrupted status
+  throw e
+ } catch (hudson.AbortException e) {
+  // This can be thrown by various Jenkins operations
+  echo "Build was aborted: ${e.message}"
+  throw e
+ } catch (InterruptedException e) {
+  // Another type of interruption
+  echo "Build was interrupted: ${e.message}"
+  throw e
  } catch (Exception e) {
   echo "Error during approval process: ${e.message}"
   throw e
+ } finally {
+  // Optional: Add any cleanup that should always run
+  echo 'Cleanup completed for approval request'
  }
 }
