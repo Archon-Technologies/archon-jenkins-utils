@@ -63,13 +63,13 @@ def getAccessToken() {
 }
 
 // Function to look up groups by name
-def lookupGroupByName(String groupName) {
+def lookupResourceByName(String resourceType, String name) {
  def workbenchUrl = env.WORKBENCH_URL
  if (!workbenchUrl) {
   error 'WORKBENCH_URL environment variable is required'
  }
 
- echo "Looking up group: ${groupName}"
+ echo "Looking up ${resourceType}: ${name}"
 
  // Get OAuth token
  def accessToken = getAccessToken()
@@ -77,7 +77,7 @@ def lookupGroupByName(String groupName) {
  try {
   // Query groups by name
   def groupsResponse = httpRequest(
-   url: "${workbenchUrl}/api/v1/groups?name=${URLEncoder.encode(groupName, 'UTF-8')}",
+   url: "${workbenchUrl}/api/v1/${resourceType}?searchTerm=${URLEncoder.encode(name, 'UTF-8')}",
    httpMode: 'GET',
    acceptType: 'APPLICATION_JSON',
    customHeaders: [[name: 'Authorization', value: "Bearer ${accessToken}"]],
@@ -88,18 +88,18 @@ def lookupGroupByName(String groupName) {
   def groups = groupsResponseData.data
 
   if (groups.size() == 0) {
-   echo "No group found with name: ${groupName}"
+   echo "No ${resourceType} found with name: ${name}"
    return null
   } else if (groups.size() > 1) {
-   echo "Warning: Multiple groups found with name: ${groupName}, returning first match"
+   echo "Warning: Multiple ${resourceType} found with name: ${name}, returning first match"
   }
 
   def group = groups[0]
 
-  echo "Found group: ${group.name} (ID: ${group.id})"
+  echo "Found ${resourceType}: ${group.name} (ID: ${group.id})"
   return group
  } catch (Exception e) {
-  echo "Error looking up group: ${e.message}"
+  echo "Error looking up ${resourceType}: ${e.message}"
   throw e
  }
 }
@@ -113,7 +113,7 @@ def call(Map config = [:]) {
  def categoryName = config.categoryName // Required: category ID in Workbench
  def workbenchUrl = config.workbenchUrl ?: env.WORKBENCH_URL // Base URL of Workbench API
 
- def categoryId = lookupGroupByName(categoryName).id
+ def categoryId = lookupResourceByName('categories', categoryName).id
 
  // Validate required parameters
  if (!requestedApprovers) {
