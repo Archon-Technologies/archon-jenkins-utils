@@ -29,7 +29,8 @@ class WorkbenchUtils implements Serializable {
    def wellKnownResponse = steps.httpRequest(
                 url: wellKnownUrl,
                 httpMode: 'GET',
-                acceptType: 'APPLICATION_JSON'
+                acceptType: 'APPLICATION_JSON',
+                quiet: true
             )
    def wellKnownConfig = steps.readJSON(text: wellKnownResponse.content)
    def tokenEndpoint = wellKnownConfig.token_endpoint
@@ -45,8 +46,9 @@ class WorkbenchUtils implements Serializable {
                 httpMode: 'POST',
                 acceptType: 'APPLICATION_JSON',
                 contentType: 'APPLICATION_FORM',
-                requestBody: "grant_type=client_credentials&client_id=${clientId}&client_secret=${clientSecret}",
-                validResponseCodes: '200'
+                requestBody: 'grant_type=client_credentials&client_id=' + clientId + '&client_secret=' + clientSecret,
+                validResponseCodes: '200',
+                quiet: true
             )
    def tokenData = steps.readJSON(text: tokenResponse.content)
    return tokenData.access_token
@@ -73,8 +75,9 @@ class WorkbenchUtils implements Serializable {
                 url: "${workbenchUrl}/api/v1/${resourceType}?searchTerm=${URLEncoder.encode(name, 'UTF-8')}",
                 httpMode: 'GET',
                 acceptType: 'APPLICATION_JSON',
-                customHeaders: [[name: 'Authorization', value: "Bearer ${accessToken}"]],
-                validResponseCodes: '200'
+                customHeaders: [[name: 'Authorization', value: 'Bearer ' + accessToken]],
+                validResponseCodes: '200',
+                quiet: true
             )
 
    def resourcesResponseData = steps.readJSON(text: resourcesResponse.content)

@@ -92,9 +92,10 @@ def call(Map config = [:]) {
    httpMode: 'POST',
    acceptType: 'APPLICATION_JSON',
    contentType: 'APPLICATION_JSON',
-   customHeaders: [[name: 'Authorization', value: "Bearer ${accessToken}"]],
+   customHeaders: [[name: 'Authorization', value: 'Bearer ' + accessToken]],
    requestBody: threadPayload,
-   validResponseCodes: '200,201'
+   validResponseCodes: '200,201',
+   quiet: true
   )
 
   def threadResponseData = readJSON(text: createThreadResponse.content)

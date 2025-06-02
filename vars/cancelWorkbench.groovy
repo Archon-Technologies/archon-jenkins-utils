@@ -48,8 +48,9 @@ def call(Map config = [:]) {
             httpMode: 'POST',
             acceptType: 'APPLICATION_JSON',
             contentType: 'APPLICATION_JSON',
-            customHeaders: [[name: 'Authorization', value: "Bearer ${accessToken}"]],
-            validResponseCodes: '200,201,204'
+            customHeaders: [[name: 'Authorization', value: 'Bearer ' + accessToken]],
+            validResponseCodes: '200,201,204',
+            quiet: true
         )
 
   echo "Approval thread ${threadId} cancelled successfully"
