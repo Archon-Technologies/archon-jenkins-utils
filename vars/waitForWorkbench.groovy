@@ -27,84 +27,12 @@ Required plugins:
 - Pipeline Utility Steps
 */
 
-// Helper function to get OAuth access token
-def getAccessToken() {
- def wellKnownUrl = env.OAUTH_WELL_KNOWN
- if (!wellKnownUrl) {
-  error 'OAUTH_WELL_KNOWN environment variable is required'
- }
-
- return withCredentials([usernamePassword(
-  credentialsId: 'OAUTH_CLIENT',
-  usernameVariable: 'CLIENT_ID',
-  passwordVariable: 'CLIENT_SECRET'
- )]) {
-  echo 'Fetching OAuth configuration from well-known endpoint...'
-  def wellKnownResponse = httpRequest(
-   url: wellKnownUrl,
-   httpMode: 'GET',
-   acceptType: 'APPLICATION_JSON'
-  )
-  def wellKnownConfig = readJSON(text: wellKnownResponse.content)
-  def tokenEndpoint = wellKnownConfig.token_endpoint
-
-  echo 'Requesting access token...'
-  def tokenResponse = httpRequest(
-   url: tokenEndpoint,
-   httpMode: 'POST',
-   acceptType: 'APPLICATION_JSON',
-   contentType: 'APPLICATION_FORM',
-   requestBody: "grant_type=client_credentials&client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}",
-   validResponseCodes: '200'
-  )
-  def tokenData = readJSON(text: tokenResponse.content)
-  return tokenData.access_token
- }
-}
-
-// Function to look up groups by name
-def lookupResourceByName(String resourceType, String name) {
- def workbenchUrl = env.WORKBENCH_URL
- if (!workbenchUrl) {
-  error 'WORKBENCH_URL environment variable is required'
- }
-
- echo "Looking up ${resourceType}: ${name}"
-
- // Get OAuth token
- def accessToken = getAccessToken()
-
- try {
-  // Query groups by name
-  def groupsResponse = httpRequest(
-   url: "${workbenchUrl}/api/v1/${resourceType}?searchTerm=${URLEncoder.encode(name, 'UTF-8')}",
-   httpMode: 'GET',
-   acceptType: 'APPLICATION_JSON',
-   customHeaders: [[name: 'Authorization', value: "Bearer ${accessToken}"]],
-   validResponseCodes: '200'
-  )
-
-  def groupsResponseData = readJSON(text: groupsResponse.content)
-  def groups = groupsResponseData.data
-
-  if (groups.size() == 0) {
-   echo "No ${resourceType} found with name: ${name}"
-   return null
-  } else if (groups.size() > 1) {
-   echo "Warning: Multiple ${resourceType} found with name: ${name}, returning first match"
-  }
-
-  def group = groups[0]
-
-  echo "Found ${resourceType}: ${group.name} (ID: ${group.id})"
-  return group
- } catch (Exception e) {
-  echo "Error looking up ${resourceType}: ${e.message}"
-  throw e
- }
-}
+import sh.archon.workbench.WorkbenchUtils
 
 def call(Map config = [:]) {
+ // Create utility instance
+ def utils = new WorkbenchUtils(this)
+
  // Required parameters
  def jobName = config.jobName ?: env.JOB_NAME
  def buildNumber = config.buildNumber ?: env.BUILD_NUMBER
@@ -113,7 +41,7 @@ def call(Map config = [:]) {
  def categoryName = config.categoryName // Required: category ID in Workbench
  def workbenchUrl = config.workbenchUrl ?: env.WORKBENCH_URL // Base URL of Workbench API
 
- def categoryId = lookupResourceByName('categories', categoryName).id
+ def categoryId = utils.lookupResourceByName('categories', categoryName).id
 
  // Validate required parameters
  if (!requestedApprovers) {
@@ -129,7 +57,7 @@ def call(Map config = [:]) {
  echo "Setting up Workbench approval for ${jobName} #${buildNumber}"
 
  // Step 1: Get OAuth token
- def accessToken = getAccessToken()
+ def accessToken = utils.getAccessToken()
 
  // Step 2: Register webhook and get webhook URL
  def webhookUrl = null
@@ -172,6 +100,11 @@ def call(Map config = [:]) {
   echo "Approval thread created with ID: ${threadId}"
 
   // Step 4: Wait for webhook callback
+  echo '\n\n===== [Awaiting Approval] ====='
+  echo 'To take actions, visit: '
+  echo "${workbenchUrl}/category/${categoryId}/thread/${threadId}"
+  echo '=================================\n\n'
+
   echo 'Waiting for approval...'
   def webhookData = waitForWebhook(hook)
 
