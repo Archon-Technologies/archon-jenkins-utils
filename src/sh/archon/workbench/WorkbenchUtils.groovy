@@ -21,10 +21,10 @@ class WorkbenchUtils implements Serializable {
   }
 
   return steps.withCredentials([steps.usernamePassword(
-            credentialsId: 'OAUTH_CLIENT',
-            usernameVariable: 'CLIENT_ID',
-            passwordVariable: 'CLIENT_SECRET'
-        )]) {
+    credentialsId: 'OAUTH_CLIENT',
+    usernameVariable: 'CLIENT_ID',
+    passwordVariable: 'CLIENT_SECRET'
+   )]) {
    steps.echo 'Fetching OAuth configuration from well-known endpoint...'
    def wellKnownResponse = steps.httpRequest(
                 url: wellKnownUrl,
@@ -35,17 +35,22 @@ class WorkbenchUtils implements Serializable {
    def tokenEndpoint = wellKnownConfig.token_endpoint
 
    steps.echo 'Requesting access token...'
+
+   // Capture the credentials in local variables
+   def clientId = steps.env.CLIENT_ID
+   def clientSecret = steps.env.CLIENT_SECRET
+
    def tokenResponse = steps.httpRequest(
                 url: tokenEndpoint,
                 httpMode: 'POST',
                 acceptType: 'APPLICATION_JSON',
                 contentType: 'APPLICATION_FORM',
-                requestBody: "grant_type=client_credentials&client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}",
+                requestBody: "grant_type=client_credentials&client_id=${clientId}&client_secret=${clientSecret}",
                 validResponseCodes: '200'
             )
    def tokenData = steps.readJSON(text: tokenResponse.content)
    return tokenData.access_token
-        }
+   }
  }
 
     /**
