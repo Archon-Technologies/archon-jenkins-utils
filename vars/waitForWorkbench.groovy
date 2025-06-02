@@ -117,6 +117,8 @@ def call(Map config = [:]) {
   // Verify job details match
   if (webhookPayload.jobName != jobName || webhookPayload.buildNumber != buildNumber) {
    error 'Webhook callback does not match expected job details'
+  } else if (webhookPayload.intent == 'cancel') {
+   error 'Approval was cancelled'
   }
 
   echo 'Approval received! Continuing build...'
