@@ -130,9 +130,7 @@ def call(Map config = [:]) {
    jobName: jobName,
    buildNumber: buildNumber
   ]
- } catch (org.jenkinsci.plugins.workflow.steps.FlowInterruptedException |
-          hudson.AbortException |
-          InterruptedException e) {
+ } catch (org.jenkinsci.plugins.workflow.steps.FlowInterruptedException e) {
   // This is thrown when the build is manually aborted
   echo "Build was interrupted/cancelled: ${e.message}"
 
@@ -144,8 +142,5 @@ def call(Map config = [:]) {
  } catch (Exception e) {
   echo "Error during approval process: ${e.message}"
   throw e
- } finally {
-  // Optional: Add any cleanup that should always run
-  echo 'Cleanup completed for approval request'
  }
 }
